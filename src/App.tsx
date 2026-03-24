@@ -93,10 +93,17 @@ export default function App() {
   }, [historyDetailCharacter, speak]);
 
   const handleVoiceResult = async (text: string) => {
+    console.log("Voice recognition result:", text);
+    if (!text || text.trim().length === 0) {
+      setError('哎呀，我好像没听到声音，请再试一次。');
+      return;
+    }
+
     setIsProcessing(true);
     setError(null);
     try {
       const result = await extractCharacterFromSpeech(text);
+      console.log("Extraction result:", result);
       if (result) {
         if (result.isOffTopic) {
           toast('哎呀，请专心问我汉字怎么写，我不会闲聊带偏你的哦。', {
@@ -122,9 +129,10 @@ export default function App() {
           return [newInfo, ...filtered].slice(0, 50); // Keep last 50
         });
       } else {
-        setError('抱歉，我没听清你想查哪个字，请再试一次。');
+        setError(`抱歉，我听到了“${text}”，但没能提取出你想查的字，请换个说法试试。`);
       }
     } catch (err) {
+      console.error("Voice result processing error:", err);
       setError('发生了一点小错误，请稍后再试。');
     } finally {
       setIsProcessing(false);

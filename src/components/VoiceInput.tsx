@@ -21,12 +21,21 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, isProcessing }
 
       rec.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        onResult(transcript);
+        console.log("Speech recognition transcript:", transcript);
+        if (transcript && transcript.trim().length > 0) {
+          onResult(transcript);
+        } else {
+          console.warn("Empty transcript received");
+          onResult(""); // Still call onResult to let App handle the empty state
+        }
         setIsListening(false);
       };
 
       rec.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
+        if (event.error === 'no-speech') {
+          onResult(""); // Trigger empty state in App
+        }
         setIsListening(false);
       };
 
