@@ -19,20 +19,25 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     // 生产模式：托管 dist 目录下的静态文件
-    const distPath = path.resolve(__dirname, "dist");
-    
-    // 显式设置 .js 文件的 MIME 类型，防止浏览器报错
+    const distPath = path.resolve(process.cwd(), "dist");
+    console.log(`Serving static files from: ${distPath}`);
+
+    // 静态文件服务：显式处理静态资源
     app.use(express.static(distPath, {
+      index: false, // 禁用默认 index.html，由下方的 get("*") 统一处理
       setHeaders: (res, filePath) => {
         if (filePath.endsWith(".js")) {
           res.setHeader("Content-Type", "application/javascript");
+        } else if (filePath.endsWith(".css")) {
+          res.setHeader("Content-Type", "text/css");
         }
       }
     }));
     
     // 所有路由都指向 index.html (SPA 支持)
     app.get("*", (req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
+      const indexPath = path.resolve(distPath, "index.html");
+      res.sendFile(indexPath);
     });
   }
 
