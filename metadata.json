@@ -1,0 +1,5 @@
+{
+  "name": "小状元识字 - 汉字书写助手",
+  "description": "专为中国小学生设计的汉字书写学习工具，支持语音查询、田字格展示及动态笔顺演示。",
+  "requestFramePermissions": ["microphone"]
+}
