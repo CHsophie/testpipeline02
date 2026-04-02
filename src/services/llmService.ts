@@ -1,3 +1,4 @@
+import OpenAI from "openai";
 
 export interface CharacterInfo {
   character: string;
@@ -17,8 +18,9 @@ export async function extractCharacterFromSpeech(speechText: string): Promise<Ch
   }
 
   try {
-    console.log("Extracting character from (via backend):", speechText);
-    const response = await fetch("/api/extract", {
+    console.log("Extracting character from (via Netlify Function):", speechText);
+    // Netlify functions are accessible at /.netlify/functions/<filename>
+    const response = await fetch("/.netlify/functions/qwen-proxy", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -26,13 +28,24 @@ export async function extractCharacterFromSpeech(speechText: string): Promise<Ch
       body: JSON.stringify({ speechText }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to call backend API.");
+    const responseText = await response.text();
+    if (!responseText) {
+      throw new Error("服务器返回内容为空，请检查 API Key 配置。");
     }
 
-    const result = await response.json();
-    console.log("Backend result:", result);
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error("Failed to parse response as JSON:", responseText);
+      throw new Error("服务器返回格式错误，请稍后再试。");
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to call Netlify Function.");
+    }
+
+    console.log("Netlify Function result:", result);
 
     if (result.isOffTopic) {
       return { 
@@ -65,6 +78,6 @@ export async function extractCharacterFromSpeech(speechText: string): Promise<Ch
     return null;
   } catch (error) {
     console.error("Extraction error:", error);
-    throw error; // Rethrow to let the UI handle it
+    throw error;
   }
 }

@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
-    "start": "node server.ts",
+    "dev": "vite",
+    "start": "sirv dist --port 3000 --single",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
@@ -30,6 +30,7 @@
     "vite": "^6.2.0"
   },
   "devDependencies": {
+    "@netlify/functions": "^5.1.5",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
