@@ -1,6 +1,6 @@
 import React from 'react';
 import { History, Trash2, ChevronRight } from 'lucide-react';
-import { CharacterInfo } from '../services/geminiService';
+import { CharacterInfo } from '../services/llmService';
 
 interface HistoryListProps {
   history: CharacterInfo[];

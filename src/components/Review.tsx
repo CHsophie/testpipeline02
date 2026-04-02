@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CharacterInfo } from '../services/geminiService';
+import { CharacterInfo } from '../services/llmService';
 import { BookOpen, CheckCircle2, Settings, ChevronRight, PlayCircle } from 'lucide-react';
 import { HanziDisplay } from './HanziDisplay';
 import { motion, AnimatePresence } from 'motion/react';

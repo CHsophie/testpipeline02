@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 
 interface VoiceInputProps {
   onResult: (text: string) => void;
@@ -33,10 +34,19 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, isProcessing }
 
       rec.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error === 'no-speech') {
-          onResult(""); // Trigger empty state in App
-        }
         setIsListening(false);
+        
+        if (event.error === 'not-allowed') {
+          toast.error('麦克风权限被拒绝，请在浏览器设置中允许访问麦克风。', {
+            description: '如果是微信内打开，请点击右上角“在浏览器中打开”。'
+          });
+        } else if (event.error === 'no-speech') {
+          onResult(""); // Trigger empty state in App
+        } else if (event.error === 'network') {
+          toast.error('网络连接问题，语音识别需要联网。');
+        } else {
+          toast.error(`语音识别出错: ${event.error}`);
+        }
       };
 
       rec.onend = () => {
@@ -49,7 +59,9 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, isProcessing }
 
   const toggleListening = useCallback(() => {
     if (!recognition) {
-      alert('您的浏览器不支持语音识别，请尝试使用 Chrome 浏览器。');
+      toast.error('您的浏览器不支持语音识别', {
+        description: '建议使用 Chrome、Safari 或 Edge 浏览器。如果您在微信中，请点击右上角选择“在浏览器中打开”。'
+      });
       return;
     }
 
@@ -59,8 +71,16 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, isProcessing }
       try {
         recognition.start();
         setIsListening(true);
-      } catch (e) {
+      } catch (e: any) {
         console.error('Recognition start error:', e);
+        if (e.name === 'InvalidStateError') {
+          // Already started, ignore
+        } else {
+          toast.error('无法启动语音识别', {
+            description: e.message || '请检查麦克风是否被占用。'
+          });
+          setIsListening(false);
+        }
       }
     }
   }, [recognition, isListening]);

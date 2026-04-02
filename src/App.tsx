@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { VoiceInput } from './components/VoiceInput';
 import { HanziDisplay } from './components/HanziDisplay';
 import { HistoryList } from './components/HistoryList';
-import { extractCharacterFromSpeech, CharacterInfo } from './services/geminiService';
+import { extractCharacterFromSpeech, CharacterInfo } from './services/llmService';
 import { BookOpen, Sparkles, GraduationCap, Volume2, Search, History, CheckCircle2, ChevronLeft, Languages, X } from 'lucide-react';
 import { Review } from './components/Review';
 import { motion, AnimatePresence } from 'motion/react';
@@ -131,9 +131,9 @@ export default function App() {
       } else {
         setError(`抱歉，我听到了“${text}”，但没能提取出你想查的字，请换个说法试试。`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Voice result processing error:", err);
-      setError('发生了一点小错误，请稍后再试。');
+      setError(err.message || '发生了一点小错误，请稍后再试。');
     } finally {
       setIsProcessing(false);
     }
