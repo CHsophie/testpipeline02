@@ -10,6 +10,7 @@ import { HistoryList } from './components/HistoryList';
 import { extractCharacterFromSpeech, extractSentenceFromSpeech, CharacterInfo, SentenceInfo, HistoryItem } from './services/llmService';
 import { BookOpen, Sparkles, GraduationCap, Volume2, Search, History, ChevronLeft, Languages, X, Type } from 'lucide-react';
 import { SentenceDisplay } from './components/SentenceDisplay';
+import { WeChatWarning } from './components/WeChatWarning';
 import { motion, AnimatePresence } from 'motion/react';
 import { Toaster, toast } from 'sonner';
 
@@ -27,6 +28,7 @@ export default function App() {
   const [dailyGoal, setDailyGoal] = useState(5);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isWeChat, setIsWeChat] = useState(false);
 
   // Load history and goal from localStorage
   useEffect(() => {
@@ -42,6 +44,10 @@ export default function App() {
     if (savedGoal) {
       setDailyGoal(parseInt(savedGoal));
     }
+
+    // WeChat detection
+    const isWX = /MicroMessenger/i.test(window.navigator.userAgent);
+    setIsWeChat(isWX);
   }, []);
 
   // Save history to localStorage
@@ -225,6 +231,10 @@ export default function App() {
     setHistoryDetailItem(null);
   };
 
+  if (isWeChat) {
+    return <WeChatWarning />;
+  }
+
   return (
     <div className="min-h-screen bg-[#FFFBF0] text-gray-900 font-sans selection:bg-red-100 pb-24">
       <Toaster position="top-center" expand={true} richColors />
@@ -322,7 +332,7 @@ export default function App() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">想学哪个字？</h3>
-                    <p className="text-gray-500 mt-2">点击右下角的麦克风，大声告诉我吧！</p>
+                    <p className="text-gray-500 mt-2 text-sm sm:text-base whitespace-nowrap">点击右下角的麦克风，大声告诉我吧！</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
                     {['老虎的虎', '爱心的爱', '天上的天', '花朵的花'].map((example) => (
@@ -377,7 +387,7 @@ export default function App() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">想写哪个句子？</h3>
-                    <p className="text-gray-500 mt-2">点击右下角麦克风，录入想写的句子。</p>
+                    <p className="text-gray-500 mt-2 text-sm sm:text-base whitespace-nowrap">点击右下角麦克风，录入想写的句子。</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
                     {['我爱学汉字', '今天天气真好', '我们要保护环境', '好好学习天天向上'].map((example) => (
