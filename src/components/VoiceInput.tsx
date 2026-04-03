@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
@@ -11,25 +11,27 @@ interface VoiceInputProps {
 export const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, isProcessing }) => {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+  const transcriptRef = useRef('');
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const rec = new SpeechRecognition();
-      rec.continuous = false;
-      rec.interimResults = false;
+      rec.continuous = true;
+      rec.interimResults = true;
       rec.lang = 'zh-CN';
 
       rec.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        console.log("Speech recognition transcript:", transcript);
-        if (transcript && transcript.trim().length > 0) {
-          onResult(transcript);
-        } else {
-          console.warn("Empty transcript received");
-          onResult(""); // Still call onResult to let App handle the empty state
+        let currentTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            transcriptRef.current += event.results[i][0].transcript;
+          } else {
+            currentTranscript += event.results[i][0].transcript;
+          }
         }
-        setIsListening(false);
+        console.log("Speech recognition current interim:", currentTranscript);
+        console.log("Speech recognition accumulated final:", transcriptRef.current);
       };
 
       rec.onerror = (event: any) => {
@@ -40,20 +42,26 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, isProcessing }
           toast.error('麦克风权限被拒绝，请在浏览器设置中允许访问麦克风。', {
             description: '如果是微信内打开，请点击右上角“在浏览器中打开”。'
           });
-        } else if (event.error === 'no-speech') {
-          onResult(""); // Trigger empty state in App
         } else if (event.error === 'network') {
           toast.error('网络连接问题，语音识别需要联网。');
-        } else {
+        } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
           toast.error(`语音识别出错: ${event.error}`);
         }
       };
 
       rec.onend = () => {
         setIsListening(false);
+        if (transcriptRef.current.trim().length > 0) {
+          onResult(transcriptRef.current);
+          transcriptRef.current = ''; // Reset for next time
+        }
       };
 
       setRecognition(rec);
+
+      return () => {
+        rec.stop();
+      };
     }
   }, [onResult]);
 
@@ -69,6 +77,7 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, isProcessing }
       recognition.stop();
     } else {
       try {
+        transcriptRef.current = ''; // Reset on start
         recognition.start();
         setIsListening(true);
       } catch (e: any) {

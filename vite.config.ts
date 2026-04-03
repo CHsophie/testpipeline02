@@ -28,7 +28,7 @@ export default defineConfig(({mode}) => {
               req.on('data', chunk => { body += chunk; });
               req.on('end', async () => {
                 try {
-                  const { speechText } = JSON.parse(body || '{}');
+                  const { speechText, mode } = JSON.parse(body || '{}');
                   if (!dashscopeKey) {
                     res.statusCode = 500;
                     res.end(JSON.stringify({ error: "DASHSCOPE_API_KEY is missing in preview environment." }));
@@ -40,11 +40,23 @@ export default defineConfig(({mode}) => {
                     baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
                   });
 
+                  const isSentenceMode = mode === 'sentence';
+
                   const response = await openai.chat.completions.create({
                     model: "qwen-plus",
                     messages: [
-                      { role: "system", content: "你是一个汉字学习助手。请从用户的输入中提取出用户想要查询的那个汉字，并返回 JSON 格式的数据。" },
-                      { role: "user", content: `提取出用户想要查询的那个汉字。用户输入: "${speechText}"` }
+                      { 
+                        role: "system", 
+                        content: isSentenceMode 
+                          ? "你是一个汉字学习助手。请将用户输入的语音文本转换为正确的文字，并为每个汉字标注拼音。请返回 JSON 格式的数据。"
+                          : "你是一个汉字学习助手。请从用户的输入中提取出用户想要查询的那个汉字，并返回 JSON 格式的数据。" 
+                      },
+                      { 
+                        role: "user", 
+                        content: isSentenceMode
+                          ? `请将以下文本转换为文字并标注拼音。用户输入: "${speechText}"。返回格式: {"text": "...", "pinyin": "..."}`
+                          : `提取出用户想要查询的那个汉字。用户输入: "${speechText}"。返回格式: {"character": "...", "pinyin": "...", "phrases": [...], "isOffTopic": ...}`
+                      }
                     ],
                     response_format: { type: "json_object" }
                   });

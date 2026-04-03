@@ -8,7 +8,7 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    const { speechText } = JSON.parse(event.body || "{}");
+    const { speechText, mode } = JSON.parse(event.body || "{}");
     const apiKey = process.env.DASHSCOPE_API_KEY;
 
     if (!apiKey) {
@@ -23,16 +23,29 @@ const handler: Handler = async (event) => {
       baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     });
 
+    const isSentenceMode = mode === 'sentence';
+
     const response = await openai.chat.completions.create({
       model: "qwen-plus",
       messages: [
         {
           role: "system",
-          content: "你是一个汉字学习助手。请从用户的输入中提取出用户想要查询的那个汉字，并返回 JSON 格式的数据。"
+          content: isSentenceMode 
+            ? "你是一个汉字学习助手。请将用户输入的语音文本转换为正确的文字，并为每个汉字标注拼音。请返回 JSON 格式的数据。"
+            : "你是一个汉字学习助手。请从用户的输入中提取出用户想要查询的那个汉字，并返回 JSON 格式的数据。"
         },
         {
           role: "user",
-          content: `提取出用户想要查询的那个汉字。
+          content: isSentenceMode
+            ? `请将以下文本转换为文字并标注拼音。
+用户输入: "${speechText}"
+
+请严格按照以下 JSON 格式返回:
+{
+  "text": "转换后的完整文字",
+  "pinyin": "每个汉字对应的拼音，用空格隔开"
+}`
+            : `提取出用户想要查询的那个汉字。
 用户输入: "${speechText}"
 
 规则:

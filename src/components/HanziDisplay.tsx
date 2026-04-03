@@ -5,9 +5,17 @@ interface HanziDisplayProps {
   character: string;
   size?: number;
   onComplete?: () => void;
+  onAnimate?: () => void;
+  showButton?: boolean;
 }
 
-export const HanziDisplay: React.FC<HanziDisplayProps> = ({ character, size = 200, onComplete }) => {
+export const HanziDisplay: React.FC<HanziDisplayProps> = ({ 
+  character, 
+  size = 200, 
+  onComplete,
+  onAnimate,
+  showButton = true
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const writerRef = useRef<any>(null);
 
@@ -38,6 +46,7 @@ export const HanziDisplay: React.FC<HanziDisplayProps> = ({ character, size = 20
   const handleAnimate = () => {
     if (writerRef.current) {
       writerRef.current.animateCharacter();
+      if (onAnimate) onAnimate();
     }
   };
 
@@ -61,16 +70,18 @@ export const HanziDisplay: React.FC<HanziDisplayProps> = ({ character, size = 20
           </svg>
         </div>
       </div>
-      <button 
-        onClick={handleAnimate}
-        className="px-6 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 active:scale-95 transition-all shadow-md text-sm font-bold flex items-center gap-2 group"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-180 transition-transform duration-500">
-          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-          <path d="M21 3v5h-5" />
-        </svg>
-        重新演示
-      </button>
+      {showButton && (
+        <button 
+          onClick={handleAnimate}
+          className="px-6 py-2.5 bg-red-500 text-white rounded-full hover:bg-red-600 active:scale-95 transition-all shadow-md text-sm font-bold flex items-center gap-2 group"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-180 transition-transform duration-500">
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+          </svg>
+          重新演示
+        </button>
+      )}
     </div>
   );
 };
