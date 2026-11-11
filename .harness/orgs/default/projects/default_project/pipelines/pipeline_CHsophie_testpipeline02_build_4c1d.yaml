@@ -1,0 +1,35 @@
+pipeline:
+  id: pipeline_CHsophie_testpipeline02_build_4c1d
+  name: pipeline_CHsophie_testpipeline02_build_4c1d
+  stages:
+    - name: Build and Lint
+      id: build
+      runtime: cloud
+      platform:
+        os: linux
+        arch: amd64
+      clone:
+        enabled: true
+      cache:
+        enabled: true
+      steps:
+        - name: Install Dependencies
+          id: install
+          run:
+            shell: bash
+            script: |-
+              node --version
+              npm --version
+              npm ci
+        - name: Lint
+          id: lint
+          run:
+            shell: bash
+            script: npm run lint
+        - name: Build
+          id: build_app
+          run:
+            shell: bash
+            script: npm run build
+  tags:
+    onboarding: "true"
